@@ -184,7 +184,7 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import random
 
-    from laser_dfb import laser_dfb
+    from Functions.laser_dfb import laser_dfb
 
     # simulation parameters
     SpS = 64
