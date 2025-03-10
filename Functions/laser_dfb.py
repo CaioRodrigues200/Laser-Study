@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from scipy.fft import fft
 from scipy.integrate import solve_ivp,odeint
 from scipy.constants import c, h, e
+from tqdm.notebook import tqdm  # Para exibir barra de progresso no Jupyter Notebook
 
 # Routines for DFB laser simulation.
 class laser_dfb():
@@ -48,6 +49,8 @@ class laser_dfb():
         self.freq_0  = c/self.lmbd
         # threshold current
         self.ith = e/self.tau_n*self.v*(self.n_t + 1/(self.gamma * self.tau_p * self.vg * self.a0))
+        # progress bar
+        self.progress_bar = None 
         
     def get_current(self, t):
         return np.real(self.current[np.argwhere(t >= self.t)[-1]])
@@ -77,7 +80,10 @@ class laser_dfb():
 
     def solve(self, t, current):
         self.set_current(t, current)
-        # Initial conditions        
+        # Initial conditions  
+        
+        self.progress_bar = tqdm(total=len(t), desc="Solving ODEs... Showing steps taken (compared to t_eval)")
+              
         sol = solve_ivp(
             self.laser_rate_equations,
             t_span=[t[0], t[-1]],
@@ -122,7 +128,9 @@ class laser_dfb():
         fn = fz - fs
         return [fn, fs, fp]
 
-    def carrier_density(self, t, y):        
+    def carrier_density(self, t, y):  
+        if self.progress_bar is not None:
+            self.progress_bar.update(1)  # Updates progress bar    
         return self.get_current(t)/(e*self.v)-y[0]/self.tau_n-self.vg*self.a0*y[1]*(y[0]-self.n_t)/(1+self.epsilon*y[1])
     
     def photon_density(self, y):
